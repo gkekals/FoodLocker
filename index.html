@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>관리자 페이지</title>
+    <link rel="icon" type="image/png" href="FoodLockerIcon.png" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <header>
+        <h1>관리자 페이지</h1>
+    </header>
+    <main>
+        <section id="admin-login">
+            <h2>관리자 로그인</h2>
+            <form id="adminLoginForm">
+                <input type="text" id="adminId" placeholder="관리자 아이디" required />
+                <input type="password" id="adminPw" placeholder="비밀번호" required />
+                <button type="submit">로그인</button>
+            </form>
+        </section>
+        <section id="admin-panel" style="display:none;">
+            <nav class="navbar">
+                <ul>
+                    <li><a href="#ordersTable" class="nav-link">주문관리</a></li>
+                    <li><a href="#lockerTable" class="nav-link">락커관리</a></li>
+                    <li><a href="#inquiryTable" class="nav-link">문의관리</a></li>
+                    <li><a href="#statsBox" class="nav-link">통계</a></li>
+                    <li><a href="#pushForm" class="nav-link">푸시알림</a></li>
+                </ul>
+            </nav>
+            <h2>주문 관리</h2>
+            <table id="ordersTable">
+                <thead>
+                    <tr>
+                        <th>주문번호</th>
+                        <th>고객명</th>
+                        <th>연락처</th>
+                        <th>좌석번호</th>
+                        <th>선택 락커</th>
+                        <th>주문내역</th>
+                        <th>수량</th>
+                        <th>가격</th>
+                        <th>결제</th>
+                        <th>상태</th>
+                        <th>상세/처리</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <h2>락커 관리</h2>
+            <table id="lockerTable">
+                <thead>
+                    <tr>
+                        <th>락커번호</th>
+                        <th>상태</th>
+                        <th>배정회원</th>
+                        <th>비밀번호</th>
+                        <th>열림여부</th>
+                        <th>회수</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <h2>고객 문의 관리</h2>
+            <table id="inquiryTable">
+                <thead>
+                    <tr>
+                        <th>문의번호</th>
+                        <th>고객명</th>
+                        <th>연락처</th>
+                        <th>문의내용</th>
+                        <th>문의시간</th>
+                        <th>답변</th>
+                        <th>처리</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <h2>주문/매출 통계</h2>
+            <div id="statsBox">
+                <p>총 주문 건수: <span id="totalOrders">0</span></p>
+                <p>총 매출: <span id="totalSales">0</span>원</p>
+                <p>메뉴별 주문 건수:</p>
+                <ul id="menuStats"></ul>
+            </div>
+            <h2>푸시 알림</h2>
+            <div id="pushExamples">
+                <span class="push-example" data-title="주문 수락" data-body="주문이 수락되었습니다.">주문이 수락되었습니다</span> |
+                <span class="push-example" data-title="락커 비밀번호 발급" data-body="락커 비밀번호가 발급되었습니다.">락커 비밀번호가 발급되었습니다</span>
+                |
+                <span class="push-example" data-title="조리 완료" data-body="주문하신 음식이 준비되었습니다.">주문하신 음식이 준비되었습니다</span>
+            </div>
+            <form id="pushForm">
+                <select id="pushTarget" required></select>
+                <input type="text" id="pushTitle" placeholder="알림 제목" required />
+                <input type="text" id="pushBody" placeholder="알림 내용" required />
+                <button type="submit">알림 보내기</button>
+            </form>
+        </section>
+        <button id="toTopBtn" title="맨 위로">▲</button>
+    </main>
+    <footer>
+        &copy; 2025 관리자 시스템 데모
+    </footer>
+    <script src="index.js"></script>
+</body>
+
+</html>
