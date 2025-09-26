@@ -54,8 +54,11 @@ const lockers = [
 // 주문 데이터
 let orderSeq = 1;
 const orders = [
-  { id: orderSeq++, customer: '홍길동', phone: '010-1234-5678', seat: 'A12', locker: 101, menu: '치킨', quantity: 2, price: 18000, payment: '완료', status: '대기', pw: '', request: '케첩 추가' },
-  { id: orderSeq++, customer: '김철수', phone: '010-5678-1234', seat: 'B5', locker: 102, menu: '피자', quantity: 1, price: 15000, payment: '대기', status: '대기', pw: '', request: '' }
+  { id: orderSeq++, customer: '김태현', phone: '010-1234-5678', seat: 'A12', locker: 101, menu: '떡볶이', quantity: 2, price: 18000, payment: '완료', status: '대기', pw: '', request: '케첩 추가' },
+  { id: orderSeq++, customer: '임우진', phone: '010-5678-1234', seat: 'B5', locker: 102, menu: '피자', quantity: 1, price: 15000, payment: '대기', status: '대기', pw: '', request: '' },
+  { id: orderSeq++, customer: '조용준', phone: '010-1234-5678', seat: 'A12', locker: 101, menu: '치킨', quantity: 2, price: 18000, payment: '완료', status: '대기', pw: '', request: '케첩 추가' },
+  { id: orderSeq++, customer: '하다민', phone: '010-5678-1234', seat: 'B5', locker: 102, menu: '햄버거', quantity: 1, price: 15000, payment: '대기', status: '대기', pw: '', request: '' }
+  
 ];
 
 // 문의 데이터
