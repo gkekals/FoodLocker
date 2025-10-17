@@ -75,6 +75,10 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 /***************************************************
+ * ▼▼▼ 여기! 전역 푸시 대상 집합 선언(중복 선언 금지) ▼▼▼
+ ***************************************************/
+const pushTargets = new Set(['all', 'admin']); // 기본 대상
+/***************************************************
  * 🌟 락커 데이터 (공유)
  ***************************************************/
 const lockers = [
@@ -90,29 +94,46 @@ function startFirebaseRealtimeOrders() {
   const tbody = document.querySelector('#ordersTable tbody');
   const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
 
-  onSnapshot(q, (snapshot) => {
-    tbody.innerHTML = "";
-    snapshot.forEach((docSnap) => {
-      const o = docSnap.data();
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${o.orderId || docSnap.id.slice(-5)}</td>
-        <td>${o.customerName || '-'}</td>
-        <td>${o.phone || '-'}</td>
-        <td>${o.seat || '-'}</td>
-        <td>${o.locker || '-'}</td>
-        <td>${o.menu || '-'}</td>
-        <td>${o.quantity || '-'}</td>
-        <td>${o.price ? o.price.toLocaleString() + '원' : '-'}</td>
-        <td>${o.payment || '-'}</td>
-        <td>${o.status || '-'}</td>
-        <td id="btns-${docSnap.id}">
-          ${renderOrderButtons(docSnap.id, o)}
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
+  // startFirebaseRealtimeOrders 내부 onSnapshot 콜백을 아래처럼 보강
+onSnapshot(q, (snapshot) => {
+  tbody.innerHTML = "";
+  const names = new Set(['all', 'admin']);
+
+  snapshot.forEach((docSnap) => {
+    const o = docSnap.data();
+
+    // 1) 주문 고객명 수집
+    const n1 = (o.customerName || o.user || o.name || '').trim();
+    if (n1) names.add(n1);
+
+    // 2) 락커 배정 고객명 수집(배정 이후에도 선택 가능하도록)
+    const n2 = (o.assignedTo || o.member || o.customerName || '').trim();
+    if (n2) names.add(n2);
+
+    // 테이블 렌더
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${o.orderId || docSnap.id.slice(-5)}</td>
+      <td>${o.customerName || '-'}</td>
+      <td>${o.phone || '-'}</td>
+      <td>${o.seat || '-'}</td>
+      <td>${o.locker || '-'}</td>
+      <td>${o.menu || '-'}</td>
+      <td>${o.quantity || '-'}</td>
+      <td>${o.price ? o.price.toLocaleString() + '원' : '-'}</td>
+      <td>${o.payment || '-'}</td>
+      <td>${o.status || '-'}</td>
+      <td id="btns-${docSnap.id}">${renderOrderButtons(docSnap.id, o)}</td>
+    `;
+    tbody.appendChild(tr);
   });
+
+  // 전역 집합 갱신 후 대상 셀렉트 렌더
+  pushTargets.clear();
+  names.forEach(n => pushTargets.add(n));
+  renderPushTargetOptions();
+});
+
 }
 
 /***************************************************
@@ -311,22 +332,82 @@ window.showAnswerForm = function (id) {
   }
 };
 
+// renderPushTargetOptions를 '집합 기반'으로 교체
 function renderPushTargetOptions() {
   const select = document.getElementById('pushTarget');
   if (!select) return;
-  const prevValue = select.value;
+  const prev = select.value;
+
   select.innerHTML = '';
-  const targets = [
-    { value: '', label: '이름을 선택하세요', disabled: true },
-    { value: 'all', label: '전체' },
-    { value: 'admin', label: '관리자' },
-  ];
-  targets.forEach((t) => {
-    const option = document.createElement('option');
-    option.value = t.value;
-    option.textContent = t.label;
-    if (t.disabled) option.disabled = true;
-    select.appendChild(option);
+  const guide = document.createElement('option');
+  guide.value = '';
+  guide.textContent = '이름을 선택하세요';
+  guide.disabled = true;
+  select.appendChild(guide);
+
+  [...pushTargets].forEach((v) => {
+    const opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = v;
+    select.appendChild(opt);
   });
-  if (prevValue) select.value = prevValue;
+
+  if (prev && [...pushTargets].includes(prev)) select.value = prev;
+  else select.value = 'all';
 }
+
+window.addEventListener('DOMContentLoaded', () => { renderPushTargetOptions?.(); });
+
+window.addEventListener('DOMContentLoaded', () => {
+  const examples = document.querySelectorAll('.push-example');
+  const titleInput = document.getElementById('pushTitle');
+  const bodyInput  = document.getElementById('pushBody');
+  const targetSel  = document.getElementById('pushTarget');
+
+  if (!examples.length || !titleInput || !bodyInput || !targetSel) return;
+
+  examples.forEach((el) => {
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', () => {
+      const t = el.getAttribute('data-title') || '';
+      const b = el.getAttribute('data-body')  || '';
+      titleInput.value = t;
+      bodyInput.value  = b;
+      if (!targetSel.value) targetSel.value = 'all';
+      el.animate([{ backgroundColor: '#fffae6' }, { backgroundColor: 'transparent' }], { duration: 500 });
+    });
+  });
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('pushForm');
+  if (!form) return;
+
+  form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  if (sessionStorage.getItem('isAdmin') === '1') {
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('admin-panel').style.display = '';
+  }
+
+  const target = document.getElementById('pushTarget')?.value?.trim();
+  const title  = document.getElementById('pushTitle')?.value?.trim();
+  const body   = document.getElementById('pushBody')?.value?.trim();
+  if (!target || !title || !body) return alert('대상/제목/내용을 모두 입력하세요.');
+
+  try {
+    const res = await fetch('https://<region>-<project-id>.cloudfunctions.net/sendPush', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target, title, body })
+    });
+    if (!res.ok) throw new Error(await res.text());
+    alert('알림이 전송되었습니다.');
+  } catch (e2) {
+    console.error(e2);
+    alert('알림 전송 실패: 서버/토큰/권한을 확인하세요.');
+  }
+});
+
+});
